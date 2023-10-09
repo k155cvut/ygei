@@ -6,7 +6,7 @@ clc
 clear
 
 %Load figure and show
-fig1 = imread('E:\Tomas\Graf\image1.bmp');
+fig1 = imread('image1.bmp');
 imshow(fig1,[0 80]);
 
 %RGB components
