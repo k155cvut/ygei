@@ -2,18 +2,18 @@ clc
 clear
 
 %Load image
-ras1 = imread('h:/YGEI/cv2/image1.bmp');
+ras1 = imread('image1.bmp');
 imshow(ras1);
 
 %Compression factor
 q = 25;
 
 %get RGB componets
-R=ras1(:,:,1);
-G=ras1(:,:,2);
-B=ras1(:,:,3);
+R=double(ras1(:,:,1));
+G=double(ras1(:,:,2));
+B=double(ras1(:,:,3));
 
-%transformation RGB to YCC
+%Transformation RGB to YCC
 Y = 0.2990 * R + 0.5870 * G + 0.1140 * B;
 CB = -0.1687 * R -0.3313 * G + 0.5000 * B + 128;
 CR = 0.5 * R - 0.4187 * G - 0.0813 * B + 128;
@@ -42,10 +42,10 @@ Qc = [17 18 24 47 66 99 99 99
 Qc = (50*Qc)/q;
 Qy = (50*Qy)/q;
 
-
 %Process input easter by sub-matrices
 [m, n] = size(Y);
 
+%JPEG compression
 for i = 1:8:m-7
     for j=1:8:n-7
 
@@ -64,13 +64,15 @@ for i = 1:8:m-7
         CBq = CBdct./Qy;
         CRq = CRdct./Qy;
         
-        %Round
+        %Round values
         
     end
 end
 
+%JPEG decompression
 
 
+%Compute standard deviations
 
 
 function Rt=mydct(R)
