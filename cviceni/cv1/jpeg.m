@@ -100,7 +100,9 @@ for u = 0:7
         for x = 0:7
             %Input raster: columns
             for y = 0:7
-                F=F+1/4*Cu*Cv*(R(x+1,y+1)*cos((2*x+1)*u*pi/16)*cos((2*y+1)*v*pi/16));
+
+                F=F+1/4*Cu*Cv*(R(x+1, y+1)*cos((2*x+1)*u*pi/16)*cos((2*y+1)*v*pi/16));
+                
             end
         end
 
@@ -138,7 +140,9 @@ for x = 0:7
                 else
                     Cv = 1
                 end
-                F=F+1/4*Cu*Cv*(R(x+1,y+1)*cos((2*x+1)*u*pi/16)*cos((2*y+1)*v*pi/16));
+
+                F=F+1/4*Cu*Cv*(R(x+1, y+1)*cos((2*x+1)*u*pi/16)*cos((2*y+1)*v*pi/16));
+
             end
         end
 
