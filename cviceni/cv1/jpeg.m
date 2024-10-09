@@ -1,17 +1,19 @@
+
 clc
 clear
+format long g
 
 %Load image
-ras1 = imread('image1.bmp');
+ras1 = imread('image2.bmp');
 imshow(ras1);
 
 %Compression factor
-q = 25;
+q = 50;
 
-%get RGB componets
-R=double(ras1(:,:,1));
-G=double(ras1(:,:,2));
-B=double(ras1(:,:,3));
+%Get RGB components, convert uint8 to double
+R = double(ras1(:,:,1));
+G = double(ras1(:,:,2));
+B = double(ras1(:,:,3));
 
 %Transformation RGB to YCC
 Y = 0.2990 * R + 0.5870 * G + 0.1140 * B;
@@ -49,7 +51,7 @@ Qy = (50*Qy)/q;
 for i = 1:8:m-7
     for j=1:8:n-7
 
-        %Create submatrices
+        %Create tiles (submatrices)
         Ys = Y(i:i+7,j:j+7);
         CBs = CB(i:i+7,j:j+7);
         CRs = CR(i:i+7,j:j+7);
@@ -65,18 +67,76 @@ for i = 1:8:m-7
         CRq = CRdct./Qy;
         
         %Round values
-        
+        Yqr = round(Yq);
+        CBqr = round(CBq);
+        CRqr = round(CRq);
+
+        %Overwrite tile with the compressed one
+        YT(i:i+7,j:j+7) = Yqr; 
+        CBT(i:i+7,j:j+7) = CBqr;
+        CRT(i:i+7,j:j+7) = CRqr;
     end
 end
 
 %JPEG decompression
+for i = 1:8:m-7
+    for j=1:8:n-7
 
+        %Create tiles (submatrices)
+        Ys = YT(i:i+7,j:j+7);
+        CBs = CBT(i:i+7,j:j+7);
+        CRs = CRT(i:i+7,j:j+7);
+
+        %Dequantization
+        Ysd = Ys.*Qc;
+        CBd = CBs.*Qy;
+        CRd = CRs.*Qy;
+
+        %Apply IDCT
+        Yidct = myidct(Ysd);
+        CBidct = myidct(CBd);
+        CRidct = myidct(CRd);
+
+        %Overwrite tile with the compressed one
+        Y(i:i+7,j:j+7) = Yidct; 
+        Cb(i:i+7,j:j+7) = CBidct;
+        Cr(i:i+7,j:j+7) = CRidct;
+    end
+end
+
+%YCBCR to RGB
+Rd = Y+ 1.4020*(Cr-128);
+Gd = Y-0.3441*(Cb-128) - 0.7141*(Cr-128);
+Bd = Y + 1.7720 * (Cb-128) - 0.0001*(Cr-128);
+
+%Convert double to uint8
+Ri=uint8(Rd);
+Gi=uint8(Gd);
+Bi=uint8(Bd);
+
+%Assembly raster from components
+ras2(:,:,1) = Ri;
+ras2(:,:,2) = Gi;
+ras2(:,:,3) = Bi;
+
+imshow(ras2);
 
 %Compute standard deviations
+dR = R - Rd;
+dG = G - Gd;
+dB = B - Bd;
+
+dR2 = dR.^2;
+dG2 = dG.^2;
+dB2 = dB.^2;
+
+sigR = sqrt(sum(sum(dR2))/(m*n));
+sigG = sqrt(sum(sum(dG2))/(m*n));
+sigB = sqrt(sum(sum(dB2))/(m*n));
 
 
 function Rt=mydct(R)
-Rt = R
+Rt = R;
 
 %Output raster: rows
 for u = 0:7
@@ -84,7 +144,7 @@ for u = 0:7
     if u == 0
         Cu = sqrt(2)/2;
     else
-        Cu = 1
+        Cu = 1;
     end
 
     %Output raster: columns
@@ -92,7 +152,7 @@ for u = 0:7
         if v == 0
             Cv = sqrt(2)/2;
         else
-            Cv = 1
+            Cv = 1;
         end
 
         %Input raster: rows
@@ -114,7 +174,7 @@ end
 end
 
 function Rt=myidct(R)
-Rt = R
+Rt = R;
 
 %Output raster: rows
 for x = 0:7
@@ -129,7 +189,7 @@ for x = 0:7
             if u == 0
                 Cu = sqrt(2)/2;
             else
-                 Cu = 1
+                 Cu = 1;
             end
 
             %Input raster: columns
@@ -138,16 +198,16 @@ for x = 0:7
                 if v == 0
                     Cv = sqrt(2)/2;
                 else
-                    Cv = 1
+                    Cv = 1;
                 end
 
-                F=F+1/4*Cu*Cv*(R(x+1, y+1)*cos((2*x+1)*u*pi/16)*cos((2*y+1)*v*pi/16));
+                F=F+1/4*Cu*Cv*(R(u+1, v+1)*cos((2*x+1)*u*pi/16)*cos((2*y+1)*v*pi/16));
 
             end
         end
 
         %Output raster
-        Rt(u+1,v+1) = F;
+        Rt(x+1,y+1) = F;
     end
 end
 
